@@ -1,13 +1,11 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from PIL import Image
 
-image = cv2.imread(r"C:\Users\slaba\OneDrive\Desktop\Y3\COMP-388-ComputerVision\Computer-Vision\victoria.jpg")
-
-filter = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
-
+#show the image, taken from the labs
 def cv2_imshow(image):
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     plt.imshow(image)
     plt.axis(False)
     plt.show()
@@ -35,6 +33,7 @@ def rows_padding(image):
 
     return(pad_image_rows)
 
+#adding padding to image columns based on the height of the current image
 def col_padding(image):
     image_height,_ = get_image_dimensions(image)
 
@@ -47,18 +46,65 @@ def col_padding(image):
 
     return(pad_image_col)
 
+#apply padding based on the size of the filter
+#i.e IF filter is 5 by 5, THEN pad 2 pixels 
+def apply_padding(filter,image):
+    size_of_filter = filter.shape[0]
 
-#def filter2D(image,filter):
-#gray = np.append(image, pad, axis=0)
+    padded_image = image
 
-image_height, image_width = get_image_dimensions(image)
+    num = size_of_filter // 2
 
-filter_height, filter_width = get_filter_dimensions(filter)
+    for x in range(0,num):
+        padded_image = rows_padding(padded_image)
+        padded_image = col_padding(padded_image)
 
-print("filter height: " + str(filter_height))
-print("filter width: " + str(filter_width))
+    return(padded_image)
 
-print("image height: " + str(image_height)) 
-print("image width: " + str(image_width))
 
-cv2_imshow(image)
+def apply_convolution(filter,image):
+
+    image_height, image_width = get_image_dimensions(image)
+
+    size_of_filter = filter.shape[0]
+    num = size_of_filter // 2
+    
+    #create a new array filled with zeros to pass the results of the convolution here
+    #think of it as a blank canvas for the convolution results
+    final_image = np.zeros((image_height,image_width), dtype=int)
+
+    for x in range(num,image_height-num):
+        for y in range(num,image_width-num):
+
+            pixel_area = image[x-num:x+(num+1), y-num:y+(num+1)]
+
+            product = np.multiply(pixel_area,filter)
+            sum = np.sum(product)
+            
+            #keep the values within the acceptable range for a grayscale image 0:255
+            if sum > 255:
+                final_image[x,y] = 255
+            elif sum < 0:
+                final_image[x,y] = 0
+            else:
+                final_image[x,y] = sum
+            
+    return final_image
+
+image = cv2.imread(r"C:\Users\slaba\OneDrive\Desktop\Y3\COMP-388-ComputerVision\Computer-Vision\victoria.jpg")
+
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+#Filters
+filter = np.array([[0,-1,0],[-1,4,-1],[0,-1,0]])
+sobel = np.array([[-1,-2,0,2,1],[-2,-3,0,3,2],[-3,-5,0,5,3],[-2,-3,0,3,2],[-1,-2,0,2,1]])
+
+#First apply padding then convolution
+padded_image = apply_padding(filter,gray_image)
+final_image = apply_convolution(filter,padded_image)
+cv2_imshow(final_image)
+#print(final_image[0:10,0:10])
+
+cv2_filtered_image = cv2.filter2D(gray_image,-1,filter)
+cv2_imshow(cv2_filtered_image)
+#print(cv2_filtered_image[0:10,0:10])
