@@ -5,7 +5,6 @@ from PIL import Image
 
 #show the image, taken from the labs
 def cv2_imshow(image):
-    #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     plt.imshow(image)
     plt.axis(False)
     plt.show()
@@ -14,12 +13,6 @@ def cv2_imshow(image):
 def get_image_dimensions(image):
     h = image.shape[0]
     w = image.shape[1]
-    return(h,w)
-
-#get height and width of the filter
-def get_filter_dimensions(filter):
-    h = filter.shape[0]
-    w = filter.shape[1]
     return(h,w)
 
 #adding padding to image rows based on the width of the current image
@@ -53,6 +46,7 @@ def apply_padding(filter,image):
 
     padded_image = image
 
+    #the size of the filter indicates the number of pixel the code needs to add
     num = size_of_filter // 2
 
     for x in range(0,num):
@@ -76,8 +70,11 @@ def apply_convolution(filter,image):
     for x in range(num,image_height-num):
         for y in range(num,image_width-num):
 
+            #get the area around the pixel of interest 
+            #the area depends on the size of the filter hence the variable num
             pixel_area = image[x-num:x+(num+1), y-num:y+(num+1)]
 
+            #multiply with filter and sum up to get the final value
             product = np.multiply(pixel_area,filter)
             sum = np.sum(product)
             
@@ -91,20 +88,26 @@ def apply_convolution(filter,image):
             
     return final_image
 
+
 image = cv2.imread(r"C:\Users\slaba\OneDrive\Desktop\Y3\COMP-388-ComputerVision\Computer-Vision\victoria.jpg")
 
+#Step 1 turn input image to grayscale
 gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 #Filters
-filter = np.array([[0,-1,0],[-1,4,-1],[0,-1,0]])
-sobel = np.array([[-1,-2,0,2,1],[-2,-3,0,3,2],[-3,-5,0,5,3],[-2,-3,0,3,2],[-1,-2,0,2,1]])
+laplace1 = np.array([[0,-1,0],[-1,4,-1],[0,-1,0]])
+laplace2 = np.array([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]])
+sobel1 = np.array([[-1,-2,0,2,1],[-2,-3,0,3,2],[-3,-5,0,5,3],[-2,-3,0,3,2],[-1,-2,0,2,1]])
+sobel2 = np.array([[1,2,3,2,1],[2,3,5,3,2],[0,0,0,0,0],[-2,-3,-5,-3,-2],[-1,-2,-3,-2,-1]])
+vertical_edge_detection = np.array([[1,0,-1],[1,0,-1],[1,0,-1]])
+horizontal_edge_detection = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
 
 #First apply padding then convolution
-padded_image = apply_padding(filter,gray_image)
-final_image = apply_convolution(filter,padded_image)
+padded_image = apply_padding(horizontal_edge_detection,gray_image)
+final_image = apply_convolution(horizontal_edge_detection,padded_image)
 cv2_imshow(final_image)
 #print(final_image[0:10,0:10])
 
-cv2_filtered_image = cv2.filter2D(gray_image,-1,filter)
+cv2_filtered_image = cv2.filter2D(gray_image,-1,horizontal_edge_detection)
 cv2_imshow(cv2_filtered_image)
 #print(cv2_filtered_image[0:10,0:10])
