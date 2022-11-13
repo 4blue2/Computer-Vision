@@ -103,11 +103,16 @@ vertical_edge_detection = np.array([[1,0,-1],[1,0,-1],[1,0,-1]])
 horizontal_edge_detection = np.array([[1,1,1],[0,0,0],[-1,-1,-1]])
 
 #First apply padding then convolution
-padded_image = apply_padding(horizontal_edge_detection,gray_image)
-final_image = apply_convolution(horizontal_edge_detection,padded_image)
+#To experiment with other filters replace ONLY the first argument
+#of the functions apply_padding & apply_convolution with the filter you desire
+padded_image = apply_padding(laplace1,gray_image)
+final_image = apply_convolution(laplace1,padded_image)
 cv2_imshow(final_image)
-#print(final_image[0:10,0:10])
+print(final_image[0:10,0:10])
 
-cv2_filtered_image = cv2.filter2D(gray_image,-1,horizontal_edge_detection)
+print("==============================================================================")
+
+cv2_filtered_image = cv2.filter2D(gray_image,-1,laplace1)
 cv2_imshow(cv2_filtered_image)
-#print(cv2_filtered_image[0:10,0:10])
+print(cv2_filtered_image[0:10,0:10])
+
